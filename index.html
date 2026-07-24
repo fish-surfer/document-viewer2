@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>자료실</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  :root{
+    --ink:#182130; --ink-soft:#2A3547; --ink-soft2:#33405A;
+    --paper:#F5EFE2; --paper-edge:#E8DFCB;
+    --gold:#B98B3E; --gold-soft:#D8B871;
+    --teal:#3E6E64; --teal-soft:#6FA79A;
+    --rust:#B1543A; --rust-soft:#D68A73;
+    --text-on-ink:#EDE7D8; --text-muted:#9AA3B2;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; min-height:100vh;
+    background:radial-gradient(1200px 600px at 50% -10%, #232D40 0%, var(--ink) 55%), var(--ink);
+    font-family:'Inter',system-ui,sans-serif; color:var(--text-on-ink);
+    display:flex; flex-direction:column;
+  }
+  a{color:inherit;}
+
+  /* ---------- header ---------- */
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 24px;flex-wrap:wrap;}
+  .brand{display:flex;align-items:baseline;gap:10px;min-width:0;cursor:pointer;}
+  .brand .mark{width:8px;height:8px;border-radius:2px;background:var(--gold);flex-shrink:0;transform:translateY(-2px);}
+  .brand h1{font-family:'Source Serif 4',serif;font-weight:600;font-size:19px;margin:0;letter-spacing:.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .brand .kind{font-size:12px;color:var(--text-muted);border:1px solid var(--ink-soft2);padding:3px 8px;border-radius:20px;letter-spacing:.4px;text-transform:uppercase;flex-shrink:0;}
+  .actions{display:flex;gap:8px;}
+  .btn{appearance:none;border:1px solid var(--ink-soft2);background:var(--ink-soft);color:var(--text-on-ink);padding:9px 14px;border-radius:8px;font-size:13px;font-family:inherit;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .15s,border-color .15s;text-decoration:none;}
+  .btn:hover{background:var(--ink-soft2);border-color:#3C4A66;}
+  .btn:focus-visible{outline:2px solid var(--gold-soft);outline-offset:2px;}
+  .btn.gold{background:var(--gold);border-color:var(--gold);color:#241A08;font-weight:600;}
+  .btn.gold:hover{background:var(--gold-soft);}
+  .btn svg{width:15px;height:15px;flex-shrink:0;}
+
+  main{flex:1;display:flex;flex-direction:column;padding:8px 24px 40px;}
+
+  /* ---------- library (bookshelf) ---------- */
+  .lib-wrap{max-width:1180px;width:100%;margin:0 auto;}
+  .lib-head{margin:18px 0 26px;}
+  .lib-head h2{font-family:'Source Serif 4',serif;font-size:24px;font-weight:600;margin:0 0 6px;}
+  .lib-head p{margin:0;color:var(--text-muted);font-size:13.5px;}
+  .shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:18px;}
+  .book{
+    position:relative;
+    background:var(--paper);
+    border-radius:3px 10px 10px 3px;
+    padding:20px 16px 16px 22px;
+    min-height:230px;
+    display:flex;flex-direction:column;justify-content:space-between;
+    cursor:pointer;
+    box-shadow:0 1px 0 var(--paper-edge) inset, 0 14px 30px -14px rgba(0,0,0,.55);
+    transition:transform .15s ease, box-shadow .15s ease;
+    text-align:left;
+  }
+  .book::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;}
+  .book.type-pdf::before{background:linear-gradient(180deg,var(--teal-soft),var(--teal) 60%,#264a42);}
+  .book.type-ppt::before{background:linear-gradient(180deg,var(--gold-soft),var(--gold) 60%,#8f6a2c);}
+  .book.type-xlsx::before{background:linear-gradient(180deg,var(--rust-soft),var(--rust) 60%,#7c3a26);}
+  .book:hover{transform:translateY(-4px);box-shadow:0 20px 36px -16px rgba(0,0,0,.6);}
+  .book:focus-visible{outline:2px solid var(--gold-soft);outline-offset:3px;}
+  .book .badge{align-self:flex-start;font-size:10.5px;letter-spacing:.5px;text-transform:uppercase;padding:3px 8px;border-radius:20px;color:#241A08;font-weight:600;}
+  .book.type-pdf .badge{background:var(--teal-soft);color:#0E241F;}
+  .book.type-ppt .badge{background:var(--gold-soft);}
+  .book.type-xlsx .badge{background:var(--rust-soft);color:#3A150C;}
+  .book h3{font-family:'Source Serif 4',serif;font-size:15.5px;font-weight:600;color:#241E12;margin:14px 0 0;line-height:1.4;}
+
+  .lib-state{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-muted);}
+  .lib-state .ring{width:24px;height:24px;margin:0 auto 14px;border-radius:50%;border:2.5px solid #384258;border-top-color:var(--gold);animation:spin .9s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .lib-state h2{font-family:'Source Serif 4',serif;color:var(--text-on-ink);font-size:18px;margin:0 0 8px;}
+  .lib-state code{background:var(--ink-soft2);padding:2px 6px;border-radius:4px;font-size:12px;}
+
+  /* ---------- viewer (stage) ---------- */
+  .viewer-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .backbar{width:100%;max-width:1180px;margin:0 auto 14px;}
+  .stage-wrap{width:100%;max-width:1180px;display:flex;justify-content:center;margin:0 auto;}
+  .stage{position:relative;width:100%;background:var(--paper);border-radius:3px 10px 10px 3px;
+    box-shadow:0 1px 0 var(--paper-edge) inset, 0 24px 60px -20px rgba(0,0,0,.65), 0 2px 0 rgba(0,0,0,.2);overflow:hidden;}
+  .stage::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:linear-gradient(180deg,var(--gold-soft),var(--gold) 55%,#8f6a2c);z-index:3;}
+  .stage.landscape{aspect-ratio:16/10.2;}
+  .stage.portrait{aspect-ratio:3/3.9;max-width:760px;}
+  @media (max-width:640px){.stage.portrait{aspect-ratio:3/4.3;max-width:none;}.stage.landscape{aspect-ratio:4/3.4;}}
+  .stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--paper);}
+  .loader{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--paper);color:#8A7B5C;font-size:13px;letter-spacing:.3px;z-index:2;transition:opacity .35s ease;}
+  .loader .ring{width:26px;height:26px;border-radius:50%;border:2.5px solid #E3D9BE;border-top-color:var(--gold);animation:spin .9s linear infinite;}
+  .loader.hide{opacity:0;pointer-events:none;}
+
+  footer{text-align:center;color:var(--text-muted);font-size:11.5px;padding:0 16px 18px;letter-spacing:.2px;}
+
+  :fullscreen .stage,:-webkit-full-screen .stage{max-width:none;width:100vw;height:100vh;aspect-ratio:auto;border-radius:0;}
+  :fullscreen .viewer-wrap,:-webkit-full-screen .viewer-wrap{padding:0;}
+
+  [hidden]{display:none !important;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand" id="brandHome" role="button" tabindex="0">
+    <span class="mark" aria-hidden="true"></span>
+    <h1 id="docTitle">자료실</h1>
+    <span class="kind" id="docKind" hidden></span>
+  </div>
+  <div class="actions" id="headerActions">
+    <a class="btn gold" id="registerBtn" href="#" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+      새 자료 등록
+    </a>
+    <button class="btn" id="fsBtn" type="button" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+      전체화면
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- 자료실(목록) 화면 -->
+  <div class="lib-wrap" id="libraryView">
+    <div class="lib-head">
+      <h2>등록된 자료</h2>
+      <p>클릭하면 바로 열람할 수 있습니다</p>
+    </div>
+    <div class="shelf" id="shelf">
+      <div class="lib-state">
+        <div class="ring"></div>
+        <span>자료 목록을 불러오는 중입니다</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 개별 문서 뷰어 화면 -->
+  <div class="viewer-wrap" id="viewerView" hidden>
+    <div class="backbar">
+      <button class="btn" id="backBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        자료실로
+      </button>
+    </div>
+    <div class="stage-wrap">
+      <div class="stage portrait" id="stage">
+        <div class="loader" id="loader">
+          <div class="ring"></div>
+          <span>문서를 불러오는 중입니다</span>
+        </div>
+        <iframe id="docFrame" hidden allow="fullscreen" title="문서 미리보기"></iframe>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>이 문서는 미리보기 전용이며 다운로드·편집되지 않습니다</footer>
+
+<script>
+(function(){
+  // ====== 설정: 아래 두 값만 채우면 바로 동작합니다 ======
+  var CONFIG = {
+    // 구글 시트를 "웹에 게시 > CSV"로 얻은 URL
+    SHEET_CSV_URL: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTfxb_CPh0dtrOlHkdbgnNwqLmSlKyRkB2kGx8XUr1vOEVFDKUImFEBVwFruVU7xmVI9XliXOM2XAK0/pub?output=csv',
+    // 구글 폼(등록 페이지) URL — 헤더의 "새 자료 등록" 버튼에 연결됨
+    FORM_URL: ''
+  };
+  // 시트 컬럼 순서(구글 폼 응답 시트 기본 순서): 타임스탬프, 제목, 드라이브링크, 종류
+  // ============================================
+
+  var kindLabels = {pdf:'PDF', ppt:'PPT', pptx:'PPT', xlsx:'엑셀', xls:'엑셀'};
+  var landscapeTypes = ['ppt','pptx','xlsx','xls'];
+
+  var libraryView = document.getElementById('libraryView');
+  var viewerView = document.getElementById('viewerView');
+  var shelf = document.getElementById('shelf');
+  var titleEl = document.getElementById('docTitle');
+  var kindEl = document.getElementById('docKind');
+  var fsBtn = document.getElementById('fsBtn');
+  var backBtn = document.getElementById('backBtn');
+  var brandHome = document.getElementById('brandHome');
+  var registerBtn = document.getElementById('registerBtn');
+  var stage = document.getElementById('stage');
+  var frame = document.getElementById('docFrame');
+  var loader = document.getElementById('loader');
+
+  if(CONFIG.FORM_URL){ registerBtn.href = CONFIG.FORM_URL; }
+  else { registerBtn.hidden = true; }
+
+  function extractId(raw){
+    if(!raw) return null;
+    var m = String(raw).match(/[-\w]{25,}/);
+    return m ? m[0] : null;
+  }
+
+  function goHome(){
+    history.pushState(null,'',location.pathname);
+    render();
+  }
+  brandHome.addEventListener('click', goHome);
+  brandHome.addEventListener('keydown', function(e){ if(e.key==='Enter') goHome(); });
+  backBtn.addEventListener('click', goHome);
+
+  function openDoc(item){
+    var url = location.pathname + '?id=' + encodeURIComponent(item.id) +
+      '&type=' + encodeURIComponent(item.type) +
+      '&title=' + encodeURIComponent(item.title);
+    history.pushState(null,'',url);
+    render();
+  }
+
+  function renderShelf(items){
+    shelf.innerHTML = '';
+    if(!items.length){
+      shelf.innerHTML = '<div class="lib-state"><h2>등록된 자료가 없습니다</h2><p>상단의 "새 자료 등록" 버튼으로 첫 문서를 등록해 보세요</p></div>';
+      return;
+    }
+    items.forEach(function(item){
+      var card = document.createElement('div');
+      card.className = 'book type-' + (item.type === 'pptx' ? 'ppt' : (item.type==='xls'?'xlsx':item.type));
+      card.tabIndex = 0;
+      card.setAttribute('role','button');
+      card.innerHTML =
+        '<span class="badge">' + (kindLabels[item.type] || item.type.toUpperCase()) + '</span>' +
+        '<h3></h3>';
+      card.querySelector('h3').textContent = item.title;
+      card.addEventListener('click', function(){ openDoc(item); });
+      card.addEventListener('keydown', function(e){ if(e.key==='Enter') openDoc(item); });
+      shelf.appendChild(card);
+    });
+  }
+
+  function loadLibrary(){
+    libraryView.hidden = false;
+    viewerView.hidden = true;
+    titleEl.textContent = '자료실';
+    kindEl.hidden = true;
+    fsBtn.hidden = true;
+
+    if(!CONFIG.SHEET_CSV_URL){
+      shelf.innerHTML =
+        '<div class="lib-state"><h2>연동할 시트가 아직 없습니다</h2>' +
+        '<p>코드 상단 <code>CONFIG.SHEET_CSV_URL</code> 값을 구글 시트 게시 CSV 링크로 채워주세요</p></div>';
+      return;
+    }
+
+    Papa.parse(CONFIG.SHEET_CSV_URL, {
+      download: true,
+      complete: function(results){
+        var rows = results.data.filter(function(r){ return r && r.length >= 3 && r[1]; });
+        // 첫 행이 헤더(제목 등 텍스트)면 제외
+        if(rows.length && extractId(rows[0][2]) === null){ rows.shift(); }
+        var items = rows.map(function(r){
+          var title = (r[1] || '이름 없는 문서').trim();
+          var id = extractId(r[2]);
+          var type = (r[3] || 'pdf').trim().toLowerCase();
+          if(!id) return null;
+          return {title:title, id:id, type:type};
+        }).filter(Boolean).reverse(); // 최신 등록이 위로
+        renderShelf(items);
+      },
+      error: function(){
+        shelf.innerHTML = '<div class="lib-state"><h2>자료 목록을 불러오지 못했습니다</h2><p>시트 게시 설정을 확인해 주세요</p></div>';
+      }
+    });
+  }
+
+  function loadViewer(id, type, title){
+    libraryView.hidden = true;
+    viewerView.hidden = false;
+    fsBtn.hidden = false;
+
+    titleEl.textContent = title || '문서 뷰어';
+    document.title = title || '문서 뷰어';
+    if(kindLabels[type]){ kindEl.textContent = kindLabels[type]; kindEl.hidden = false; } else { kindEl.hidden = true; }
+
+    var isLandscape = landscapeTypes.indexOf(type) !== -1;
+    stage.classList.remove('landscape','portrait');
+    stage.classList.add(isLandscape ? 'landscape' : 'portrait');
+
+    loader.classList.remove('hide');
+    frame.hidden = true;
+    frame.src = 'https://drive.google.com/file/d/' + id + '/preview';
+    frame.hidden = false;
+    frame.onload = function(){ loader.classList.add('hide'); };
+    setTimeout(function(){ loader.classList.add('hide'); }, 6000);
+  }
+
+  function render(){
+    var qs = new URLSearchParams(location.search);
+    var id = qs.get('id') || extractId(qs.get('link') || '');
+    if(id){
+      loadViewer(id, (qs.get('type')||'pdf').toLowerCase(), qs.get('title'));
+    } else {
+      loadLibrary();
+    }
+  }
+
+  fsBtn.addEventListener('click', function(){
+    if(!document.fullscreenElement){ (stage.requestFullscreen || stage.webkitRequestFullscreen).call(stage); }
+    else { (document.exitFullscreen || document.webkitExitFullscreen).call(document); }
+  });
+
+  window.addEventListener('popstate', render);
+  render();
+})();
+</script>
+</body>
+</html>
